@@ -8,32 +8,76 @@ const {
     ButtonStyle,
     EmbedBuilder,
     Events,
-    StringSelectMenuBuilder,
-    ModalBuilder,
-    TextInputBuilder,
-    TextInputStyle
+    StringSelectMenuBuilder
 } = require('discord.js');
 
 const client = new Client({
     intents: [GatewayIntentBits.Guilds]
 });
 
-const userCraft = {};
+// =========================
+// TABELAS
+// =========================
+const armas = {
+  "Cattleman": { min: 90, max: 105 },
+  "Ação Dupla": { min: 125, max: 145 },
+  "Schofield": { min: 130, max: 150 },
+  "Lemat": { min: 185, max: 215 },
+  "Navy": { min: 210, max: 240 },
+  "Volcanic": { min: 135, max: 160 },
+  "Mauser": { min: 190, max: 225 },
+  "Semi-Automática": { min: 230, max: 270 },
+  "M1899": { min: 245, max: 285 },
+  "Carabina": { min: 280, max: 325 },
+  "Henry": { min: 305, max: 360 },
+  "Evans": { min: 360, max: 416 },
+  "Winchester": { min: 370, max: 430 },
+  "Varmint": { min: 250, max: 290 },
+  "Springfield": { min: 310, max: 360 },
+  "Ferrolho": { min: 380, max: 445 },
+  "Cano Duplo": { min: 375, max: 440 },
+  "Espingarda Repetidora": { min: 363, max: 425 },
+  "Espingarda Semi-Automática": { min: 450, max: 528 }
+};
 
+const municoes = {
+  "Munição de Revolver": { min: 6.60, max: 7.70 },
+  "Munição de Pistola": { min: 6.60, max: 7.70 },
+  "Munição de Repetição": { min: 8.40, max: 9.80 },
+  "Munição de Rifle": { min: 8.70, max: 10.10 },
+  "Munição de Escopeta": { min: 9.00, max: 10.50 },
+  "Munição de Rifle Elephant": { min: 11.90, max: 13.90 },
+  "Munição de Varmint": { min: 5.20, max: 6.10 },
+  "Munição de Varmint Tranquilizante": { min: 6.10, max: 7.20 }
+};
+
+// =========================
+// CACHE
+// =========================
+const userVenda = {};
+
+// =========================
+// BOT ONLINE
+// =========================
 client.once(Events.ClientReady, () => {
     console.log(`Bot online: ${client.user.tag}`);
 });
 
+// =========================
+// INTERAÇÕES
+// =========================
 client.on(Events.InteractionCreate, async interaction => {
 
-    // /painel
+    // =========================
+    // PAINEL
+    // =========================
     if (interaction.isChatInputCommand()) {
 
         if (interaction.commandName === 'painel') {
 
             const embed = new EmbedBuilder()
                 .setTitle('🔫 ARMARIA OESTE RP')
-                .setDescription('Sistema profissional de registro de craft.')
+                .setDescription('Sistema de Craft e Vendas Profissional')
                 .setColor('DarkRed');
 
             const row = new ActionRowBuilder()
@@ -41,142 +85,143 @@ client.on(Events.InteractionCreate, async interaction => {
                     new ButtonBuilder()
                         .setCustomId('craft')
                         .setLabel('Registrar Craft')
-                        .setStyle(ButtonStyle.Danger)
+                        .setStyle(ButtonStyle.Danger),
+
+                    new ButtonBuilder()
+                        .setCustomId('venda')
+                        .setLabel('Registrar Venda')
+                        .setStyle(ButtonStyle.Success)
                 );
 
-            await interaction.reply({
+            return interaction.reply({
                 embeds: [embed],
                 components: [row]
             });
         }
     }
 
-    // BOTÃO
+    // =========================
+    // BOTÕES
+    // =========================
     if (interaction.isButton()) {
 
+        // CRAFT
         if (interaction.customId === 'craft') {
 
             const menu = new StringSelectMenuBuilder()
-                .setCustomId('arma_select')
-                .setPlaceholder('Selecione a arma')
+                .setCustomId('venda_select')
+                .setPlaceholder('Selecione o item')
                 .addOptions([
-                    {
-                        label: 'Revolver Cattleman',
-                        value: 'Revolver Cattleman'
-                    },
-                    {
-                        label: 'Rifle Lancaster',
-                        value: 'Rifle Lancaster'
-                    },
-                    {
-                        label: 'Escopeta Cano Duplo',
-                        value: 'Escopeta Cano Duplo'
-                    },
-                    {
-                        label: 'Munição Revolver',
-                        value: 'Munição Revolver'
-                    },
-                    {
-                        label: 'Munição Rifle',
-                        value: 'Munição Rifle'
-                    }
+                    ...Object.keys(armas).map(a => ({ label: a, value: a })),
+                    ...Object.keys(municoes).map(m => ({ label: m, value: m }))
                 ]);
 
-            const row = new ActionRowBuilder()
-                .addComponents(menu);
+            const row = new ActionRowBuilder().addComponents(menu);
 
-            await interaction.reply({
+            await interaction.deferReply({ ephemeral: true });
+
+            return interaction.editReply({
                 content: '🔧 Escolha o item:',
+                components: [row]
+            });
+        }
+
+        // VENDA
+        if (interaction.customId === 'venda') {
+
+            const menu = new StringSelectMenuBuilder()
+                .setCustomId('venda_select')
+                .setPlaceholder('Selecione o item vendido')
+                .addOptions([
+                    ...Object.keys(armas).map(a => ({ label: a, value: a })),
+                    ...Object.keys(municoes).map(m => ({ label: m, value: m }))
+                ]);
+
+            const row = new ActionRowBuilder().addComponents(menu);
+
+            return interaction.reply({
+                content: '💰 Escolha o item vendido:',
                 components: [row],
                 ephemeral: true
             });
         }
     }
 
-    // MENU
+    // =========================
+    // SELECT
+    // =========================
     if (interaction.isStringSelectMenu()) {
 
-        if (interaction.customId === 'arma_select') {
+        if (interaction.customId === 'venda_select') {
 
-            const arma = interaction.values[0];
+            const item = interaction.values[0];
+            userVenda[interaction.user.id] = { item };
 
-            userCraft[interaction.user.id] = {
-                arma: arma
-            };
+            const menu = new StringSelectMenuBuilder()
+                .setCustomId('venda_modo')
+                .setPlaceholder('Escolha o tipo de venda')
+                .addOptions([
+                    { label: 'Preço Mínimo', value: 'minimo' },
+                    { label: 'Preço Máximo', value: 'maximo' }
+                ]);
 
-            const modal = new ModalBuilder()
-                .setCustomId('quantidade_modal')
-                .setTitle('Quantidade do Craft');
+            const row = new ActionRowBuilder().addComponents(menu);
 
-            const quantidadeInput = new TextInputBuilder()
-                .setCustomId('quantidade_input')
-                .setLabel('Digite a quantidade')
-                .setStyle(TextInputStyle.Short)
-                .setPlaceholder('Ex: 15')
-                .setRequired(true);
-
-            const modalRow = new ActionRowBuilder()
-                .addComponents(quantidadeInput);
-
-            modal.addComponents(modalRow);
-
-            await interaction.showModal(modal);
+            return interaction.reply({
+                content: '📦 Escolha o valor da venda:',
+                components: [row],
+                ephemeral: true
+            });
         }
-    }
 
-    // MODAL
-    if (interaction.isModalSubmit()) {
+        if (interaction.customId === 'venda_modo') {
 
-        if (interaction.customId === 'quantidade_modal') {
+            const modo = interaction.values[0];
+            const data = userVenda[interaction.user.id];
 
-            const quantidade = interaction.fields.getTextInputValue('quantidade_input');
-
-            const craft = userCraft[interaction.user.id];
-
-            const embed = new EmbedBuilder()
-                .setTitle('🔫 NOVO CRAFT REGISTRADO')
-                .setColor('Red')
-                .addFields(
-                    {
-                        name: '👤 Funcionário',
-                        value: interaction.user.username,
-                        inline: true
-                    },
-                    {
-                        name: '🔧 Item',
-                        value: craft.arma,
-                        inline: true
-                    },
-                    {
-                        name: '📦 Quantidade',
-                        value: quantidade,
-                        inline: true
-                    }
-                )
-                .setFooter({
-                    text: 'Oeste RP • Sistema Profissional'
-                })
-                .setTimestamp();
-
-            // CANAL DE LOGS
-            const canalLogs = client.channels.cache.get(process.env.LOG_CHANNEL_ID);
-
-            if (canalLogs) {
-                await canalLogs.send({
-                    embeds: [embed]
+            if (!data) {
+                return interaction.reply({
+                    content: '❌ Sessão expirada.',
+                    ephemeral: true
                 });
             }
 
-            // RESPOSTA PRIVADA
-            await interaction.reply({
-                content: '✅ Craft registrado com sucesso!',
+            const item = data.item;
+            const tabela = armas[item] ? armas : municoes;
+            const valores = tabela[item];
+
+            const valor = modo === 'minimo' ? valores.min : valores.max;
+
+            const comissao = valor * 0.15;
+            const empresa = valor - comissao;
+
+            const embed = new EmbedBuilder()
+                .setTitle('💰 VENDA REGISTRADA')
+                .setColor('Green')
+                .addFields(
+                    { name: '👤 Funcionário', value: interaction.user.username, inline: true },
+                    { name: '🔫 Item', value: item, inline: true },
+                    { name: '📦 Tipo', value: modo, inline: true },
+                    { name: '💰 Valor', value: `R$ ${valor.toFixed(2)}` },
+                    { name: '⚒️ Comissão (15%)', value: `R$ ${comissao.toFixed(2)}`, inline: true },
+                    { name: '🏢 Empresa', value: `R$ ${empresa.toFixed(2)}`, inline: true }
+                )
+                .setTimestamp();
+
+            const canalLogs = await client.channels.fetch(process.env.LOG_CHANNEL_ID);
+
+            if (canalLogs) {
+                await canalLogs.send({ embeds: [embed] });
+            }
+
+            delete userVenda[interaction.user.id];
+
+            return interaction.reply({
+                content: '✅ Venda registrada com sucesso!',
                 ephemeral: true
             });
-
-            delete userCraft[interaction.user.id];
         }
     }
-
 });
 
 client.login(process.env.TOKEN);
