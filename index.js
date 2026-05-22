@@ -104,13 +104,21 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (interaction.customId === 'craft') {
 
+            // 🔥 FIX PRINCIPAL: garantir máximo 25 opções
+            const lista = [
+                ...Object.keys(armas),
+                ...Object.keys(municoes)
+            ].slice(0, 25);
+
             const menu = new StringSelectMenuBuilder()
                 .setCustomId('venda_select')
                 .setPlaceholder('Selecione o item')
-                .addOptions([
-                    ...Object.keys(armas).map(a => ({ label: a, value: a })),
-                    ...Object.keys(municoes).map(m => ({ label: m, value: m }))
-                ]);
+                .addOptions(
+                    lista.map(i => ({
+                        label: i,
+                        value: i
+                    }))
+                );
 
             return interaction.reply({
                 content: '🔧 Escolha o item:',
@@ -121,13 +129,20 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (interaction.customId === 'venda') {
 
+            const lista = [
+                ...Object.keys(armas),
+                ...Object.keys(municoes)
+            ].slice(0, 25);
+
             const menu = new StringSelectMenuBuilder()
                 .setCustomId('venda_select')
                 .setPlaceholder('Selecione o item vendido')
-                .addOptions([
-                    ...Object.keys(armas).map(a => ({ label: a, value: a })),
-                    ...Object.keys(municoes).map(m => ({ label: m, value: m }))
-                ]);
+                .addOptions(
+                    lista.map(i => ({
+                        label: i,
+                        value: i
+                    }))
+                );
 
             return interaction.reply({
                 content: '💰 Escolha o item vendido:',
