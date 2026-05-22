@@ -12,7 +12,11 @@ const {
 } = require('discord.js');
 
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds]
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
+    ]
 });
 
 // =========================
@@ -52,6 +56,7 @@ const municoes = {
 };
 
 const userVenda = {};
+const vendaPendente = {};
 
 // =========================
 // BOT ONLINE
@@ -181,17 +186,43 @@ client.on(Events.InteractionCreate, async interaction => {
                 )
                 .setTimestamp();
 
-            const canalLogs = await client.channels.fetch(process.env.LOG_CHANNEL_ID);
-            await canalLogs?.send({ embeds: [embed] });
+            vendaPendente[interaction.user.id] = {
+                embed,
+                canalId: process.env.LOG_CHANNEL_ID
+            };
 
             delete userVenda[interaction.user.id];
 
             return interaction.reply({
-                content: '✅ Venda registrada com sucesso!',
+                content: '📸 Agora envie a foto do comprovante no chat.',
                 ephemeral: true
             });
         }
     }
+});
+
+// =========================
+// CAPTURA DE COMPROVANTE
+// =========================
+client.on('messageCreate', async (message) => {
+
+    if (message.author.bot) return;
+
+    const venda = vendaPendente[message.author.id];
+    if (!venda) return;
+
+    if (message.attachments.size === 0) return;
+
+    const imagem = message.attachments.first().url;
+
+    const canal = await client.channels.fetch(venda.canalId);
+
+    await canal.send({
+        embeds: [venda.embed],
+        files: [imagem]
+    });
+
+    delete vendaPendente[message.author.id];
 });
 
 client.login(process.env.TOKEN);
