@@ -53,10 +53,16 @@ const municoes = {
 
 const userVenda = {};
 
+// =========================
+// BOT ONLINE
+// =========================
 client.once(Events.ClientReady, () => {
     console.log(`Bot online: ${client.user.tag}`);
 });
 
+// =========================
+// INTERAÇÕES
+// =========================
 client.on(Events.InteractionCreate, async interaction => {
 
     // =========================
@@ -84,16 +90,10 @@ client.on(Events.InteractionCreate, async interaction => {
                         .setStyle(ButtonStyle.Success)
                 );
 
-            // 🔥 FIX DEFINITIVO DO 10062
-            try {
-                await interaction.deferReply();
-                return await interaction.editReply({
-                    embeds: [embed],
-                    components: [row]
-                });
-            } catch (err) {
-                console.log("Erro painel:", err);
-            }
+            return interaction.reply({
+                embeds: [embed],
+                components: [row]
+            });
         }
     }
 
@@ -112,13 +112,10 @@ client.on(Events.InteractionCreate, async interaction => {
                     ...Object.keys(municoes).map(m => ({ label: m, value: m }))
                 ]);
 
-            const row = new ActionRowBuilder().addComponents(menu);
-
-            await interaction.deferReply({ ephemeral: true });
-
-            return interaction.editReply({
+            return interaction.reply({
                 content: '🔧 Escolha o item:',
-                components: [row]
+                components: [new ActionRowBuilder().addComponents(menu)],
+                ephemeral: true
             });
         }
 
@@ -141,7 +138,7 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     // =========================
-    // SELECT MENU
+    // SELECT MENUS
     // =========================
     if (interaction.isStringSelectMenu()) {
 
@@ -159,7 +156,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 ]);
 
             return interaction.reply({
-                content: '📦 Escolha o valor da venda:',
+                content: '📦 Escolha o valor:',
                 components: [new ActionRowBuilder().addComponents(menu)],
                 ephemeral: true
             });
@@ -200,10 +197,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 .setTimestamp();
 
             const canalLogs = await client.channels.fetch(process.env.LOG_CHANNEL_ID);
-
-            if (canalLogs) {
-                await canalLogs.send({ embeds: [embed] });
-            }
+            await canalLogs?.send({ embeds: [embed] });
 
             delete userVenda[interaction.user.id];
 
