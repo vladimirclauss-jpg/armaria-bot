@@ -104,6 +104,8 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (interaction.customId === 'venda') {
 
+            await interaction.deferReply({ ephemeral: true });
+
             const lista = [
                 ...Object.keys(armas),
                 ...Object.keys(municoes)
@@ -119,20 +121,21 @@ client.on(Events.InteractionCreate, async interaction => {
                     }))
                 );
 
-            return interaction.reply({
+            return interaction.editReply({
                 content: '💰 Escolha o item vendido:',
-                components: [new ActionRowBuilder().addComponents(menu)],
-                ephemeral: true
+                components: [new ActionRowBuilder().addComponents(menu)]
             });
         }
     }
 
     // =========================
-    // SELECT MENUS
+    // SELECT ITEM
     // =========================
     if (interaction.isStringSelectMenu()) {
 
         if (interaction.customId === 'venda_select') {
+
+            await interaction.deferReply({ ephemeral: true });
 
             const item = interaction.values[0];
             userVenda[interaction.user.id] = { item };
@@ -145,22 +148,25 @@ client.on(Events.InteractionCreate, async interaction => {
                     { label: 'Preço Máximo', value: 'maximo' }
                 ]);
 
-            return interaction.reply({
+            return interaction.editReply({
                 content: '📦 Escolha o valor:',
-                components: [new ActionRowBuilder().addComponents(menu)],
-                ephemeral: true
+                components: [new ActionRowBuilder().addComponents(menu)]
             });
         }
 
+        // =========================
+        // SELECT MODO
+        // =========================
         if (interaction.customId === 'venda_modo') {
+
+            await interaction.deferReply({ ephemeral: true });
 
             const modo = interaction.values[0];
             const data = userVenda[interaction.user.id];
 
             if (!data) {
-                return interaction.reply({
-                    content: '❌ Sessão expirada.',
-                    ephemeral: true
+                return interaction.editReply({
+                    content: '❌ Sessão expirada.'
                 });
             }
 
@@ -193,16 +199,15 @@ client.on(Events.InteractionCreate, async interaction => {
 
             delete userVenda[interaction.user.id];
 
-            return interaction.reply({
-                content: '📸 Agora envie a foto do comprovante no chat.',
-                ephemeral: true
+            return interaction.editReply({
+                content: '📸 Agora envie a foto do comprovante no chat.'
             });
         }
     }
 });
 
 // =========================
-// CAPTURA DE COMPROVANTE
+// COMPROVANTE (IMAGEM)
 // =========================
 client.on('messageCreate', async (message) => {
 
