@@ -51,25 +51,16 @@ const municoes = {
   "Munição de Varmint Tranquilizante": { min: 6.10, max: 7.20 }
 };
 
-// =========================
-// CACHE
-// =========================
 const userVenda = {};
 
-// =========================
-// BOT ONLINE
-// =========================
 client.once(Events.ClientReady, () => {
     console.log(`Bot online: ${client.user.tag}`);
 });
 
-// =========================
-// INTERAÇÕES
-// =========================
 client.on(Events.InteractionCreate, async interaction => {
 
     // =========================
-    // PAINEL
+    // /painel
     // =========================
     if (interaction.isChatInputCommand()) {
 
@@ -93,10 +84,16 @@ client.on(Events.InteractionCreate, async interaction => {
                         .setStyle(ButtonStyle.Success)
                 );
 
-            return interaction.reply({
-                embeds: [embed],
-                components: [row]
-            });
+            // 🔥 FIX DEFINITIVO DO 10062
+            try {
+                await interaction.deferReply();
+                return await interaction.editReply({
+                    embeds: [embed],
+                    components: [row]
+                });
+            } catch (err) {
+                console.log("Erro painel:", err);
+            }
         }
     }
 
@@ -105,7 +102,6 @@ client.on(Events.InteractionCreate, async interaction => {
     // =========================
     if (interaction.isButton()) {
 
-        // CRAFT
         if (interaction.customId === 'craft') {
 
             const menu = new StringSelectMenuBuilder()
@@ -126,7 +122,6 @@ client.on(Events.InteractionCreate, async interaction => {
             });
         }
 
-        // VENDA
         if (interaction.customId === 'venda') {
 
             const menu = new StringSelectMenuBuilder()
@@ -137,18 +132,16 @@ client.on(Events.InteractionCreate, async interaction => {
                     ...Object.keys(municoes).map(m => ({ label: m, value: m }))
                 ]);
 
-            const row = new ActionRowBuilder().addComponents(menu);
-
             return interaction.reply({
                 content: '💰 Escolha o item vendido:',
-                components: [row],
+                components: [new ActionRowBuilder().addComponents(menu)],
                 ephemeral: true
             });
         }
     }
 
     // =========================
-    // SELECT
+    // SELECT MENU
     // =========================
     if (interaction.isStringSelectMenu()) {
 
@@ -165,11 +158,9 @@ client.on(Events.InteractionCreate, async interaction => {
                     { label: 'Preço Máximo', value: 'maximo' }
                 ]);
 
-            const row = new ActionRowBuilder().addComponents(menu);
-
             return interaction.reply({
                 content: '📦 Escolha o valor da venda:',
-                components: [row],
+                components: [new ActionRowBuilder().addComponents(menu)],
                 ephemeral: true
             });
         }
