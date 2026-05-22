@@ -74,16 +74,11 @@ client.on(Events.InteractionCreate, async interaction => {
 
             const embed = new EmbedBuilder()
                 .setTitle('🔫 ARMARIA OESTE RP')
-                .setDescription('Sistema de Craft e Vendas Profissional')
+                .setDescription('Sistema de Vendas Profissional')
                 .setColor('DarkRed');
 
             const row = new ActionRowBuilder()
                 .addComponents(
-                    new ButtonBuilder()
-                        .setCustomId('craft')
-                        .setLabel('Registrar Craft')
-                        .setStyle(ButtonStyle.Danger),
-
                     new ButtonBuilder()
                         .setCustomId('venda')
                         .setLabel('Registrar Venda')
@@ -98,34 +93,9 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     // =========================
-    // BOTÕES
+    // BOTÃO VENDA
     // =========================
     if (interaction.isButton()) {
-
-        if (interaction.customId === 'craft') {
-
-            // 🔥 FIX PRINCIPAL: garantir máximo 25 opções
-            const lista = [
-                ...Object.keys(armas),
-                ...Object.keys(municoes)
-            ].slice(0, 25);
-
-            const menu = new StringSelectMenuBuilder()
-                .setCustomId('venda_select')
-                .setPlaceholder('Selecione o item')
-                .addOptions(
-                    lista.map(i => ({
-                        label: i,
-                        value: i
-                    }))
-                );
-
-            return interaction.reply({
-                content: '🔧 Escolha o item:',
-                components: [new ActionRowBuilder().addComponents(menu)],
-                ephemeral: true
-            });
-        }
 
         if (interaction.customId === 'venda') {
 
