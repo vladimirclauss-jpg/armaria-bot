@@ -23,36 +23,36 @@ const client = new Client({
 // TABELAS
 // =========================
 const armas = {
-  "Cattleman": { min: 90, max: 105 },
-  "Ação Dupla": { min: 125, max: 145 },
-  "Schofield": { min: 130, max: 150 },
-  "Lemat": { min: 185, max: 215 },
-  "Navy": { min: 210, max: 240 },
-  "Volcanic": { min: 135, max: 160 },
-  "Mauser": { min: 190, max: 225 },
-  "Semi-Automática": { min: 230, max: 270 },
-  "M1899": { min: 245, max: 285 },
-  "Carabina": { min: 280, max: 325 },
-  "Henry": { min: 305, max: 360 },
-  "Evans": { min: 360, max: 416 },
-  "Winchester": { min: 370, max: 430 },
-  "Varmint": { min: 250, max: 290 },
-  "Springfield": { min: 310, max: 360 },
-  "Ferrolho": { min: 380, max: 445 },
-  "Cano Duplo": { min: 375, max: 440 },
-  "Espingarda Repetidora": { min: 363, max: 425 },
-  "Espingarda Semi-Automática": { min: 450, max: 528 }
+    "Cattleman": { min: 90, max: 105 },
+    "Ação Dupla": { min: 125, max: 145 },
+    "Schofield": { min: 130, max: 150 },
+    "Lemat": { min: 185, max: 215 },
+    "Navy": { min: 210, max: 240 },
+    "Volcanic": { min: 135, max: 160 },
+    "Mauser": { min: 190, max: 225 },
+    "Semi-Automática": { min: 230, max: 270 },
+    "M1899": { min: 245, max: 285 },
+    "Carabina": { min: 280, max: 325 },
+    "Henry": { min: 305, max: 360 },
+    "Evans": { min: 360, max: 416 },
+    "Winchester": { min: 370, max: 430 },
+    "Varmint": { min: 250, max: 290 },
+    "Springfield": { min: 310, max: 360 },
+    "Ferrolho": { min: 380, max: 445 },
+    "Cano Duplo": { min: 375, max: 440 },
+    "Espingarda Repetidora": { min: 363, max: 425 },
+    "Espingarda Semi-Automática": { min: 450, max: 528 }
 };
 
 const municoes = {
-  "Munição de Revolver": { min: 6.60, max: 7.70 },
-  "Munição de Pistola": { min: 6.60, max: 7.70 },
-  "Munição de Repetição": { min: 8.40, max: 9.80 },
-  "Munição de Rifle": { min: 8.70, max: 10.10 },
-  "Munição de Escopeta": { min: 9.00, max: 10.50 },
-  "Munição de Rifle Elephant": { min: 11.90, max: 13.90 },
-  "Munição de Varmint": { min: 5.20, max: 6.10 },
-  "Munição de Varmint Tranquilizante": { min: 6.10, max: 7.20 }
+    "Munição de Revolver": { min: 6.60, max: 7.70 },
+    "Munição de Pistola": { min: 6.60, max: 7.70 },
+    "Munição de Repetição": { min: 8.40, max: 9.80 },
+    "Munição de Rifle": { min: 8.70, max: 10.10 },
+    "Munição de Escopeta": { min: 9.00, max: 10.50 },
+    "Munição de Rifle Elephant": { min: 11.90, max: 13.90 },
+    "Munição de Varmint": { min: 5.20, max: 6.10 },
+    "Munição de Varmint Tranquilizante": { min: 6.10, max: 7.20 }
 };
 
 const userVenda = {};
@@ -231,6 +231,9 @@ client.on(Events.InteractionCreate, async interaction => {
                 canalComprovante: process.env.LOG_COMPROVANTE_CHANNEL_ID
             };
 
+            console.log("CANAL VENDA:", process.env.LOG_VENDA_CHANNEL_ID);
+            console.log("CANAL COMPROVANTE:", process.env.LOG_COMPROVANTE_CHANNEL_ID);
+
             delete userVenda[interaction.user.id];
 
             return interaction.reply({
@@ -255,6 +258,9 @@ client.on('messageCreate', async (message) => {
     if (message.attachments.size === 0) return;
 
     const imagem = message.attachments.first().url;
+
+    console.log("CANAL VENDA:", venda.canalVenda);
+    console.log("CANAL COMPROVANTE:", venda.canalComprovante);
 
     // =========================
     // CANAL VENDA
