@@ -134,11 +134,7 @@ if (interaction.isStringSelectMenu() && interaction.customId === 'venda_select')
 
     const item = interaction.values[0];
 
-    userVenda[interaction.user.id] = { item };
-
-    await interaction.deferReply({ ephemeral: true });
-
-    await interaction.deleteReply().catch(() => {});    
+    userVenda[interaction.user.id] = { item };  
 
     const modal = new ModalBuilder()
         .setCustomId('venda_quantidade')
