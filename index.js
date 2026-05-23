@@ -87,7 +87,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         .setStyle(ButtonStyle.Success)
                 );
 
-            return interaction.reply({
+            return interaction.editReply({
                 embeds: [embed],
                 components: [row]
             });
@@ -108,7 +108,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 .setPlaceholder('Selecione o item vendido')
                 .addOptions(lista.map(i => ({ label: i, value: i })));
 
-            await interaction.deferReply({ ephemeral: true });
+            await interaction.deferReply({ flags: 64 });
 
             return interaction.editReply({
                 content: '💰 Escolha o item vendido:',
@@ -146,7 +146,7 @@ client.on(Events.InteractionCreate, async interaction => {
             const data = userVenda[interaction.user.id];
 
             if (!data) {
-                return interaction.reply({ content: '❌ Sessão expirada.', ephemeral: true });
+                return interaction.editReply({ content: '❌ Sessão expirada.', ephemeral: true });
             }
 
             const item = data.item;
