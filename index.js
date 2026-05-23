@@ -108,9 +108,10 @@ client.on(Events.InteractionCreate, async interaction => {
                 .setPlaceholder('Selecione o item vendido')
                 .addOptions(lista.map(i => ({ label: i, value: i })));
 
-            return interaction.reply({
+            await interaction.deferReply({ ephemeral: true });
+
+            return interaction.editReply({
                 content: '💰 Escolha o item vendido:',
-                ephemeral: true,
                 components: [new ActionRowBuilder().addComponents(menu)]
             });
         }
@@ -131,9 +132,10 @@ client.on(Events.InteractionCreate, async interaction => {
                     { label: 'Preço Máximo', value: 'maximo' }
                 ]);
 
-            return interaction.reply({
+            await interaction.deferReply({ ephemeral: true });
+
+            return interaction.editReply({
                 content: '📦 Escolha o valor:',
-                ephemeral: true,
                 components: [new ActionRowBuilder().addComponents(menu)]
             });
         }
@@ -181,8 +183,10 @@ client.on(Events.InteractionCreate, async interaction => {
                 canalComprovante: process.env.LOG_COMPROVANTE_CHANNEL_ID
             };
 
-            return interaction.reply({
-                content: '📸 Agora envie a foto do comprovante no chat.',
+            await interaction.deferReply({ ephemeral: true });
+
+            return interaction.editReply({
+                content: '📸 envie a foto do comprovante.',
                 ephemeral: true
             });
         }
