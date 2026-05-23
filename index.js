@@ -70,6 +70,9 @@ client.once(Events.ClientReady, () => {
 // =========================
 client.on(Events.InteractionCreate, async interaction => {
 
+    // =========================
+    // /painel
+    // =========================
     if (interaction.isChatInputCommand()) {
 
         if (interaction.commandName === 'painel') {
@@ -87,13 +90,16 @@ client.on(Events.InteractionCreate, async interaction => {
                         .setStyle(ButtonStyle.Success)
                 );
 
-            return interaction.editReply({
+            return interaction.reply({
                 embeds: [embed],
                 components: [row]
             });
         }
     }
 
+    // =========================
+    // BOTÃO VENDA
+    // =========================
     if (interaction.isButton()) {
 
         if (interaction.customId === 'venda') {
@@ -106,22 +112,31 @@ client.on(Events.InteractionCreate, async interaction => {
             const menu = new StringSelectMenuBuilder()
                 .setCustomId('venda_select')
                 .setPlaceholder('Selecione o item vendido')
-                .addOptions(lista.map(i => ({ label: i, value: i })));
+                .addOptions(lista.map(i => ({
+                    label: i,
+                    value: i
+                })));
 
-            await interaction.deferReply({ flags: 64 });
-
-            return interaction.editReply({
+            return interaction.reply({
                 content: '💰 Escolha o item vendido:',
+                flags: 64,
                 components: [new ActionRowBuilder().addComponents(menu)]
             });
         }
     }
 
+    // =========================
+    // SELECT MENU
+    // =========================
     if (interaction.isStringSelectMenu()) {
 
+        // =========================
+        // SELECT ITEM
+        // =========================
         if (interaction.customId === 'venda_select') {
 
             const item = interaction.values[0];
+
             userVenda[interaction.user.id] = { item };
 
             const menu = new StringSelectMenuBuilder()
@@ -132,28 +147,38 @@ client.on(Events.InteractionCreate, async interaction => {
                     { label: 'Preço Máximo', value: 'maximo' }
                 ]);
 
-            await interaction.deferReply({ ephemeral: true });
-
-            return interaction.editReply({
+            return interaction.reply({
                 content: '📦 Escolha o valor:',
+                flags: 64,
                 components: [new ActionRowBuilder().addComponents(menu)]
             });
         }
 
+        // =========================
+        // SELECT MODO
+        // =========================
         if (interaction.customId === 'venda_modo') {
 
             const modo = interaction.values[0];
+
             const data = userVenda[interaction.user.id];
 
             if (!data) {
-                return interaction.editReply({ content: '❌ Sessão expirada.', ephemeral: true });
+                return interaction.reply({
+                    content: '❌ Sessão expirada.',
+                    flags: 64
+                });
             }
 
             const item = data.item;
+
             const tabela = armas[item] ? armas : municoes;
+
             const valores = tabela[item];
 
-            const valor = modo === 'minimo' ? valores.min : valores.max;
+            const valor = modo === 'minimo'
+                ? valores.min
+                : valores.max;
 
             const comissao = valor * 0.15;
             const empresa = valor - comissao;
@@ -162,12 +187,35 @@ client.on(Events.InteractionCreate, async interaction => {
                 .setTitle('💰 VENDA REGISTRADA')
                 .setColor('Green')
                 .addFields(
-                    { name: '👤 Funcionário', value: interaction.user.username, inline: true },
-                    { name: '🔫 Item', value: item, inline: true },
-                    { name: '📦 Tipo', value: modo, inline: true },
-                    { name: '💰 Valor', value: `R$ ${valor.toFixed(2)}` },
-                    { name: '⚒️ Comissão (15%)', value: `R$ ${comissao.toFixed(2)}`, inline: true },
-                    { name: '🏢 Empresa', value: `R$ ${empresa.toFixed(2)}`, inline: true }
+                    {
+                        name: '👤 Funcionário',
+                        value: interaction.user.username,
+                        inline: true
+                    },
+                    {
+                        name: '🔫 Item',
+                        value: item,
+                        inline: true
+                    },
+                    {
+                        name: '📦 Tipo',
+                        value: modo,
+                        inline: true
+                    },
+                    {
+                        name: '💰 Valor',
+                        value: `R$ ${valor.toFixed(2)}`
+                    },
+                    {
+                        name: '⚒️ Comissão (15%)',
+                        value: `R$ ${comissao.toFixed(2)}`,
+                        inline: true
+                    },
+                    {
+                        name: '🏢 Empresa',
+                        value: `R$ ${empresa.toFixed(2)}`,
+                        inline: true
+                    }
                 )
                 .setTimestamp();
 
@@ -183,11 +231,11 @@ client.on(Events.InteractionCreate, async interaction => {
                 canalComprovante: process.env.LOG_COMPROVANTE_CHANNEL_ID
             };
 
-            await interaction.deferReply({ ephemeral: true });
+            delete userVenda[interaction.user.id];
 
-            return interaction.editReply({
-                content: '📸 envie a pintura do comprovante.',
-                ephemeral: true
+            return interaction.reply({
+                content: '📸 Agora envie a foto do comprovante no chat.',
+                flags: 64
             });
         }
     }
@@ -201,30 +249,58 @@ client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
 
     const venda = vendaPendente[message.author.id];
+
     if (!venda) return;
 
     if (message.attachments.size === 0) return;
 
     const imagem = message.attachments.first().url;
 
+    // =========================
     // CANAL VENDA
+    // =========================
     const canalVenda = await client.channels.fetch(venda.canalVenda);
 
     await canalVenda.send({
         embeds: [venda.embed]
     });
 
+    // =========================
     // CANAL COMPROVANTE
+    // =========================
     const embedComprovante = new EmbedBuilder()
         .setTitle('🧾 COMPROVANTE DE VENDA')
         .setColor('Gold')
         .addFields(
-            { name: '👤 Funcionário', value: venda.funcionario, inline: true },
-            { name: '🔫 Item', value: venda.item, inline: true },
-            { name: '📦 Tipo', value: venda.modo, inline: true },
-            { name: '💰 Valor', value: `R$ ${venda.valor.toFixed(2)}` },
-            { name: '⚒️ Comissão', value: `R$ ${venda.comissao.toFixed(2)}`, inline: true },
-            { name: '🏢 Empresa', value: `R$ ${venda.empresa.toFixed(2)}`, inline: true }
+            {
+                name: '👤 Funcionário',
+                value: venda.funcionario,
+                inline: true
+            },
+            {
+                name: '🔫 Item',
+                value: venda.item,
+                inline: true
+            },
+            {
+                name: '📦 Tipo',
+                value: venda.modo,
+                inline: true
+            },
+            {
+                name: '💰 Valor',
+                value: `R$ ${venda.valor.toFixed(2)}`
+            },
+            {
+                name: '⚒️ Comissão',
+                value: `R$ ${venda.comissao.toFixed(2)}`,
+                inline: true
+            },
+            {
+                name: '🏢 Empresa',
+                value: `R$ ${venda.empresa.toFixed(2)}`,
+                inline: true
+            }
         )
         .setImage(imagem)
         .setTimestamp();
