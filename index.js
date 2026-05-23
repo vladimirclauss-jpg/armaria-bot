@@ -244,7 +244,7 @@ if (interaction.isStringSelectMenu() && interaction.customId === 'venda_select')
         delete userVenda[interaction.user.id];
 
         return interaction.editReply({
-            content: '📸 Agora envie a foto do comprovante no chat.'
+            content: '📸 Agora envie a pintura do comprovante.'
         });
     }
 });
@@ -254,6 +254,9 @@ if (interaction.isStringSelectMenu() && interaction.customId === 'venda_select')
 // =========================
 client.on('messageCreate', async (message) => {
     console.log("TESTE MESSAGE:", message.content);
+    console.log("USER:", message.author.id);
+    console.log("HAS VENDAS:", !!vendaPendente[message.author.id]);
+    console.log("ATTACHMENTS:", message.attachments.size);
 
     if (message.author.bot) return;
 
