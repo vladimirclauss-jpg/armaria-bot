@@ -62,11 +62,7 @@ const vendaPendente = {};
 // BOT ONLINE
 // =========================
 client.once(Events.ClientReady, () => {
-
     console.log(`Bot online: ${client.user.tag}`);
-    console.log("CANAL VENDA:", process.env.LOG_VENDA_CHANNEL_ID);
-    console.log("CANAL COMPROVANTE:", process.env.LOG_COMPROVANTE_CHANNEL_ID);
-
 });
 
 // =========================
@@ -74,300 +70,201 @@ client.once(Events.ClientReady, () => {
 // =========================
 client.on(Events.InteractionCreate, async interaction => {
 
-    try {
+    // =========================
+    // /painel
+    // =========================
+    if (interaction.isChatInputCommand()) {
 
-        // =========================
-        // /painel
-        // =========================
-        if (interaction.isChatInputCommand()) {
+        if (interaction.commandName === 'painel') {
 
-            if (interaction.commandName === 'painel') {
+            const embed = new EmbedBuilder()
+                .setTitle('🔫 ARMARIA OESTE RP')
+                .setDescription('Sistema de Vendas Profissional')
+                .setColor('DarkRed');
 
-                const embed = new EmbedBuilder()
-                    .setTitle('🔫 ARMARIA OESTE RP')
-                    .setDescription('Sistema de Vendas Profissional')
-                    .setColor('DarkRed');
+            const row = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId('venda')
+                        .setLabel('Registrar Venda')
+                        .setStyle(ButtonStyle.Success)
+                );
 
-                const row = new ActionRowBuilder()
-                    .addComponents(
-                        new ButtonBuilder()
-                            .setCustomId('venda')
-                            .setLabel('Registrar Venda')
-                            .setStyle(ButtonStyle.Success)
-                    );
-
-                return interaction.reply({
-                    embeds: [embed],
-                    components: [row]
-                });
-            }
+            return interaction.reply({
+                embeds: [embed],
+                components: [row]
+            });
         }
-
-        // =========================
-        // BOTÃO VENDA
-        // =========================
-        if (interaction.isButton()) {
-
-            if (interaction.customId === 'venda') {
-
-                const lista = [
-                    ...Object.keys(armas),
-                    ...Object.keys(municoes)
-                ].slice(0, 25);
-
-                const menu = new StringSelectMenuBuilder()
-                    .setCustomId('venda_select')
-                    .setPlaceholder('Selecione o item vendido')
-                    .addOptions(lista.map(i => ({
-                        label: i,
-                        value: i
-                    })));
-
-                return interaction.reply({
-                    content: '💰 Escolha o item vendido:',
-                    flags: 64,
-                    components: [
-                        new ActionRowBuilder().addComponents(menu)
-                    ]
-                });
-            }
-        }
-
-        // =========================
-        // SELECT MENU
-        // =========================
-        if (interaction.isStringSelectMenu()) {
-
-            // =========================
-            // SELECT ITEM
-            // =========================
-            if (interaction.customId === 'venda_select') {
-
-                const item = interaction.values[0];
-
-                userVenda[interaction.user.id] = { item };
-
-                const menu = new StringSelectMenuBuilder()
-                    .setCustomId('venda_modo')
-                    .setPlaceholder('Escolha o tipo de venda')
-                    .addOptions([
-                        {
-                            label: 'Preço Mínimo',
-                            value: 'minimo'
-                        },
-                        {
-                            label: 'Preço Máximo',
-                            value: 'maximo'
-                        }
-                    ]);
-
-                return interaction.reply({
-                    content: '📦 Escolha o valor:',
-                    flags: 64,
-                    components: [
-                        new ActionRowBuilder().addComponents(menu)
-                    ]
-                });
-            }
-
-            // =========================
-            // SELECT MODO
-            // =========================
-            if (interaction.customId === 'venda_modo') {
-
-                const modo = interaction.values[0];
-
-                const data = userVenda[interaction.user.id];
-
-                if (!data) {
-
-                    return interaction.reply({
-                        content: '❌ Sessão expirada.',
-                        flags: 64
-                    });
-
-                }
-
-                const item = data.item;
-
-                const tabela = armas[item]
-                    ? armas
-                    : municoes;
-
-                const valores = tabela[item];
-
-                const valor = modo === 'minimo'
-                    ? valores.min
-                    : valores.max;
-
-                const comissao = valor * 0.15;
-                const empresa = valor - comissao;
-
-                const embed = new EmbedBuilder()
-                    .setTitle('💰 VENDA REGISTRADA')
-                    .setColor('Green')
-                    .addFields(
-                        {
-                            name: '👤 Funcionário',
-                            value: interaction.user.username,
-                            inline: true
-                        },
-                        {
-                            name: '🔫 Item',
-                            value: item,
-                            inline: true
-                        },
-                        {
-                            name: '📦 Tipo',
-                            value: modo,
-                            inline: true
-                        },
-                        {
-                            name: '💰 Valor',
-                            value: `R$ ${valor.toFixed(2)}`
-                        },
-                        {
-                            name: '⚒️ Comissão (15%)',
-                            value: `R$ ${comissao.toFixed(2)}`,
-                            inline: true
-                        },
-                        {
-                            name: '🏢 Empresa',
-                            value: `R$ ${empresa.toFixed(2)}`,
-                            inline: true
-                        }
-                    )
-                    .setTimestamp();
-
-                vendaPendente[interaction.user.id] = {
-                    item,
-                    modo,
-                    valor,
-                    comissao,
-                    empresa,
-                    funcionario: interaction.user.username,
-                    embed,
-                    canalVenda: process.env.LOG_VENDA_CHANNEL_ID,
-                    canalComprovante: process.env.LOG_COMPROVANTE_CHANNEL_ID
-                };
-
-                delete userVenda[interaction.user.id];
-
-                return interaction.reply({
-                    embeds: [embed],
-                    content: '📸 Agora envie a foto do comprovante no chat.',
-                    flags: 64
-                });
-            }
-        }
-
-    } catch (err) {
-
-        console.log("ERRO INTERACTION:", err);
-
     }
 
+    // =========================
+    // BOTÃO VENDA
+    // =========================
+    if (interaction.isButton()) {
+
+        if (interaction.customId === 'venda') {
+
+            await interaction.deferReply({ ephemeral: true });
+
+            const lista = [
+                ...Object.keys(armas),
+                ...Object.keys(municoes)
+            ].slice(0, 25);
+
+            const menu = new StringSelectMenuBuilder()
+                .setCustomId('venda_select')
+                .setPlaceholder('Selecione o item vendido')
+                .addOptions(
+                    lista.map(i => ({
+                        label: i,
+                        value: i
+                    }))
+                );
+
+            return interaction.editReply({
+                content: '💰 Escolha o item vendido:',
+                components: [new ActionRowBuilder().addComponents(menu)]
+            });
+        }
+    }
+if (interaction.isStringSelectMenu() && interaction.customId === 'venda_select') {
+
+    const item = interaction.values[0];
+
+    userVenda[interaction.user.id] = { item };
+
+    const modal = new ModalBuilder()
+        .setCustomId('venda_quantidade')
+        .setTitle('Quantidade');
+
+    const input = new TextInputBuilder()
+        .setCustomId('quantidade')
+        .setLabel('Digite a quantidade')
+        .setStyle(TextInputStyle.Short);
+
+    const row = new ActionRowBuilder().addComponents(input);
+
+    modal.addComponents(row);
+
+    return interaction.showModal(modal);
+}
+    // =========================
+    // SELECT ITEM
+    // =========================
+    if (interaction.isModalSubmit() && interaction.customId === 'venda_quantidade') {
+
+        const quantidade = parseInt(
+            interaction.fields.getTextInputValue('quantidade')
+        );
+
+        if (isNaN(quantidade) || quantidade <= 0) {
+            return interaction.reply({
+                content: '❌ Quantidade inválida.',
+                ephemeral: true
+            });
+        }
+
+        const data = userVenda[interaction.user.id];
+
+        if (!data) {
+            return interaction.reply({
+                content: '❌ Sessão expirada.',
+                ephemeral: true
+            });
+        }
+
+        data.quantidade = quantidade;
+
+        const menu = new StringSelectMenuBuilder()
+            .setCustomId('venda_modo')
+            .setPlaceholder('Escolha o tipo de venda')
+            .addOptions([
+                { label: 'Preço Mínimo', value: 'minimo' },
+                { label: 'Preço Máximo', value: 'maximo' }
+            ]);
+
+        return interaction.reply({
+            content: `📦 Item: ${data.item}\n🔢 Quantidade: ${quantidade}\n💰 Escolha o valor:`,
+            ephemeral: true,
+            components: [
+                new ActionRowBuilder().addComponents(menu)
+            ]
+        });
+    }
+
+    // =========================
+    // SELECT MODO
+    // =========================
+    if (interaction.isStringSelectMenu() && interaction.customId === 'venda_modo') {
+
+        await interaction.deferReply({ ephemeral: true });
+
+        const modo = interaction.values[0];
+        const data = userVenda[interaction.user.id];
+
+        if (!data) {
+            return interaction.editReply({
+                content: '❌ Sessão expirada.'
+            });
+        }
+
+        const item = data.item;
+        const tabela = armas[item] ? armas : municoes;
+        const valores = tabela[item];
+
+        const valor = modo === 'minimo' ? valores.min : valores.max;
+
+        const comissao = valor * 0.15;
+        const empresa = valor - comissao;
+
+        const embed = new EmbedBuilder()
+            .setTitle('💰 VENDA REGISTRADA')
+            .setColor('Green')
+            .addFields(
+                { name: '👤 Funcionário', value: interaction.user.username, inline: true },
+                { name: '🔫 Item', value: item, inline: true },
+                { name: '📦 Tipo', value: modo, inline: true },
+                { name: '💰 Valor', value: `R$ ${valor.toFixed(2)}` },
+                { name: '⚒️ Comissão (15%)', value: `R$ ${comissao.toFixed(2)}`, inline: true },
+                { name: '🏢 Empresa', value: `R$ ${empresa.toFixed(2)}`, inline: true }
+            )
+            .setTimestamp();
+
+        vendaPendente[interaction.user.id] = {
+            embed,
+            canalId: process.env.LOG_CHANNEL_ID
+        };
+
+        delete userVenda[interaction.user.id];
+
+        return interaction.editReply({
+            content: '📸 Agora envie a foto do comprovante no chat.'
+        });
+    }
 });
 
 // =========================
-// COMPROVANTE
+// COMPROVANTE (IMAGEM)
 // =========================
 client.on('messageCreate', async (message) => {
 
-    try {
+    if (message.author.bot) return;
 
-        if (message.author.bot) return;
+    const venda = vendaPendente[message.author.id];
+    if (!venda) return;
 
-        const venda = vendaPendente[message.author.id];
+    if (message.attachments.size === 0) return;
 
-        if (!venda) return;
+    const imagem = message.attachments.first().url;
 
-        console.log("MENSAGEM RECEBIDA");
-        console.log("AUTOR:", message.author.username);
-        console.log("ANEXOS:", message.attachments.size);
+    const canal = await client.channels.fetch(venda.canalId);
 
-        if (message.attachments.size === 0) return;
+    await canal.send({
+        embeds: [venda.embed],
+        files: [imagem]
+    });
 
-        const imagem = message.attachments.first().url;
-
-        console.log("CANAL VENDA:", venda.canalVenda);
-        console.log("CANAL COMPROVANTE:", venda.canalComprovante);
-
-        // =========================
-        // CANAL VENDA
-        // =========================
-        const canalVenda = await client.channels.fetch(venda.canalVenda);
-
-        if (!canalVenda) {
-            console.log("CANAL VENDA NÃO ENCONTRADO");
-            return;
-        }
-
-        await canalVenda.send({
-            embeds: [venda.embed]
-        });
-
-        // =========================
-        // CANAL COMPROVANTE
-        // =========================
-        const embedComprovante = new EmbedBuilder()
-            .setTitle('🧾 COMPROVANTE DE VENDA')
-            .setColor('Gold')
-            .addFields(
-                {
-                    name: '👤 Funcionário',
-                    value: venda.funcionario,
-                    inline: true
-                },
-                {
-                    name: '🔫 Item',
-                    value: venda.item,
-                    inline: true
-                },
-                {
-                    name: '📦 Tipo',
-                    value: venda.modo,
-                    inline: true
-                },
-                {
-                    name: '💰 Valor',
-                    value: `R$ ${venda.valor.toFixed(2)}`
-                },
-                {
-                    name: '⚒️ Comissão',
-                    value: `R$ ${venda.comissao.toFixed(2)}`,
-                    inline: true
-                },
-                {
-                    name: '🏢 Empresa',
-                    value: `R$ ${venda.empresa.toFixed(2)}`,
-                    inline: true
-                }
-            )
-            .setImage(imagem)
-            .setTimestamp();
-
-        const canalComprovante = await client.channels.fetch(venda.canalComprovante);
-
-        if (!canalComprovante) {
-            console.log("CANAL COMPROVANTE NÃO ENCONTRADO");
-            return;
-        }
-
-        await canalComprovante.send({
-            embeds: [embedComprovante]
-        });
-
-        await message.reply("✅ Venda registrada com sucesso.");
-
-        delete vendaPendente[message.author.id];
-
-    } catch (err) {
-
-        console.log("ERRO MESSAGE CREATE:", err);
-
-    }
-
+    delete vendaPendente[message.author.id];
 });
 
 client.login(process.env.TOKEN);
