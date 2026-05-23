@@ -226,6 +226,7 @@ if (interaction.isStringSelectMenu() && interaction.customId === 'venda_select')
             .addFields(
                 { name: '👤 Funcionário', value: interaction.user.username, inline: true },
                 { name: '🔫 Item', value: item, inline: true },
+                { name: '🔢 Quantidade', value: `${data.quantidade}`, inline: true },
                 { name: '📦 Tipo', value: modo, inline: true },
                 { name: '💰 Valor', value: `R$ ${valor.toFixed(2)}` },
                 { name: '⚒️ Comissão (15%)', value: `R$ ${comissao.toFixed(2)}`, inline: true },
