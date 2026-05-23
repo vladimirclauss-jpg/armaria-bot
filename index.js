@@ -239,7 +239,6 @@ if (interaction.isStringSelectMenu() && interaction.customId === 'venda_select')
 
         vendaPendente[interaction.user.id] = {
             embed,
-            canalId: process.env.LOG_CHANNEL_ID
         };
 
         delete userVenda[interaction.user.id];
@@ -266,7 +265,7 @@ client.on('messageCreate', async (message) => {
     const imagem = message.attachments.first().url;
 
     try {
-    const canal = await client.channels.fetch(venda.canalId);
+    const canal = await client.channels.fetch(process.env.LOG_COMPROVANTE_CHANNEL_ID);
 
     if (!canal) return console.log("Canal de log inválido");
 
