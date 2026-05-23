@@ -236,10 +236,18 @@ client.on(Events.InteractionCreate, async interaction => {
 
             delete userVenda[interaction.user.id];
 
-            return interaction.reply({
-                content: '📸 Agora envie a foto do comprovante no chat.',
-                flags: 64
-            });
+                     try {
+
+                return interaction.reply({
+                    content: '📸 Agora envie a foto do comprovante no chat.',
+                    flags: 64
+                });
+
+            } catch (err) {
+
+                console.log('INTERACTION EXPIRADA:', err);
+
+            }
         }
     }
 });
