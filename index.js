@@ -68,6 +68,9 @@ client.once(Events.ClientReady, () => {
     console.log(`Bot online: ${client.user.tag}`);
 });
 
+console.log("LOG_VENDA_CHANNEL_ID:", process.env.LOG_VENDA_CHANNEL_ID);
+console.log("LOG_COMPROVANTE_CHANNEL_ID:", process.env.LOG_COMPROVANTE_CHANNEL_ID);
+
 // =========================
 // INTERAÇÕES
 // =========================
