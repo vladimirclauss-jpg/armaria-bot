@@ -14,6 +14,8 @@ const {
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
     ]
 });
 
@@ -68,9 +70,6 @@ client.once(Events.ClientReady, () => {
 // =========================
 client.on(Events.InteractionCreate, async interaction => {
 
-    // =========================
-    // /painel
-    // =========================
     if (interaction.isChatInputCommand()) {
 
         if (interaction.commandName === 'painel') {
@@ -95,14 +94,9 @@ client.on(Events.InteractionCreate, async interaction => {
         }
     }
 
-    // =========================
-    // BOTÃO VENDA
-    // =========================
     if (interaction.isButton()) {
 
         if (interaction.customId === 'venda') {
-
-            await interaction.deferReply({ ephemeral: true });
 
             const lista = [
                 ...Object.keys(armas),
@@ -112,28 +106,19 @@ client.on(Events.InteractionCreate, async interaction => {
             const menu = new StringSelectMenuBuilder()
                 .setCustomId('venda_select')
                 .setPlaceholder('Selecione o item vendido')
-                .addOptions(
-                    lista.map(i => ({
-                        label: i,
-                        value: i
-                    }))
-                );
+                .addOptions(lista.map(i => ({ label: i, value: i })));
 
-            return interaction.editReply({
+            return interaction.reply({
                 content: '💰 Escolha o item vendido:',
+                ephemeral: true,
                 components: [new ActionRowBuilder().addComponents(menu)]
             });
         }
     }
 
-    // =========================
-    // SELECT ITEM
-    // =========================
     if (interaction.isStringSelectMenu()) {
 
         if (interaction.customId === 'venda_select') {
-
-            await interaction.deferReply({ ephemeral: true });
 
             const item = interaction.values[0];
             userVenda[interaction.user.id] = { item };
@@ -146,26 +131,20 @@ client.on(Events.InteractionCreate, async interaction => {
                     { label: 'Preço Máximo', value: 'maximo' }
                 ]);
 
-            return interaction.editReply({
+            return interaction.reply({
                 content: '📦 Escolha o valor:',
+                ephemeral: true,
                 components: [new ActionRowBuilder().addComponents(menu)]
             });
         }
 
-        // =========================
-        // SELECT MODO
-        // =========================
         if (interaction.customId === 'venda_modo') {
-
-            await interaction.deferReply({ ephemeral: true });
 
             const modo = interaction.values[0];
             const data = userVenda[interaction.user.id];
 
             if (!data) {
-                return interaction.editReply({
-                    content: '❌ Sessão expirada.'
-                });
+                return interaction.reply({ content: '❌ Sessão expirada.', ephemeral: true });
             }
 
             const item = data.item;
@@ -191,21 +170,27 @@ client.on(Events.InteractionCreate, async interaction => {
                 .setTimestamp();
 
             vendaPendente[interaction.user.id] = {
+                item,
+                modo,
+                valor,
+                comissao,
+                empresa,
+                funcionario: interaction.user.username,
                 embed,
-                canalId: process.env.LOG_CHANNEL_ID
+                canalVenda: process.env.LOG_VENDA_CHANNEL_ID,
+                canalComprovante: process.env.LOG_COMPROVANTE_CHANNEL_ID
             };
 
-            delete userVenda[interaction.user.id];
-
-            return interaction.editReply({
-                content: '📸 Agora envie a foto do comprovante no chat.'
+            return interaction.reply({
+                content: '📸 Agora envie a foto do comprovante no chat.',
+                ephemeral: true
             });
         }
     }
 });
 
 // =========================
-// COMPROVANTE (IMAGEM)
+// COMPROVANTE
 // =========================
 client.on('messageCreate', async (message) => {
 
@@ -218,11 +203,32 @@ client.on('messageCreate', async (message) => {
 
     const imagem = message.attachments.first().url;
 
-    const canal = await client.channels.fetch(venda.canalId);
+    // CANAL VENDA
+    const canalVenda = await client.channels.fetch(venda.canalVenda);
 
-    await canal.send({
-        embeds: [venda.embed],
-        files: [imagem]
+    await canalVenda.send({
+        embeds: [venda.embed]
+    });
+
+    // CANAL COMPROVANTE
+    const embedComprovante = new EmbedBuilder()
+        .setTitle('🧾 COMPROVANTE DE VENDA')
+        .setColor('Gold')
+        .addFields(
+            { name: '👤 Funcionário', value: venda.funcionario, inline: true },
+            { name: '🔫 Item', value: venda.item, inline: true },
+            { name: '📦 Tipo', value: venda.modo, inline: true },
+            { name: '💰 Valor', value: `R$ ${venda.valor.toFixed(2)}` },
+            { name: '⚒️ Comissão', value: `R$ ${venda.comissao.toFixed(2)}`, inline: true },
+            { name: '🏢 Empresa', value: `R$ ${venda.empresa.toFixed(2)}`, inline: true }
+        )
+        .setImage(imagem)
+        .setTimestamp();
+
+    const canalComprovante = await client.channels.fetch(venda.canalComprovante);
+
+    await canalComprovante.send({
+        embeds: [embedComprovante]
     });
 
     delete vendaPendente[message.author.id];
