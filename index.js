@@ -251,6 +251,7 @@ if (interaction.isStringSelectMenu() && interaction.customId === 'venda_select')
 // COMPROVANTE (IMAGEM)
 // =========================
 client.on('messageCreate', async (message) => {
+    console.log("MESSAGE RECEBIDA");
 
     if (message.author.bot) return;
 
