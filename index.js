@@ -8,7 +8,10 @@ const {
     ButtonStyle,
     EmbedBuilder,
     Events,
-    StringSelectMenuBuilder
+    StringSelectMenuBuilder,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle
 } = require('discord.js');
 
 const client = new Client({
@@ -132,6 +135,10 @@ if (interaction.isStringSelectMenu() && interaction.customId === 'venda_select')
     const item = interaction.values[0];
 
     userVenda[interaction.user.id] = { item };
+
+    await interaction.deferReply({ ephemeral: true });
+
+    await interaction.deleteReply().catch(() => {});    
 
     const modal = new ModalBuilder()
         .setCustomId('venda_quantidade')
