@@ -262,14 +262,21 @@ client.on('messageCreate', async (message) => {
 
     const imagem = message.attachments.first().url;
 
+    try {
     const canal = await client.channels.fetch(venda.canalId);
 
+    if (!canal) return console.log("Canal de log inválido");
+
     await canal.send({
-        embeds: [venda.embed],
-        files: [imagem]
+        embeds: [venda.embed.setImage(imagem)]
     });
 
     delete vendaPendente[message.author.id];
+
+} catch (err) {
+    console.log("ERRO AO ENVIAR LOG:", err);
+}
+
 });
 
 client.login(process.env.TOKEN);
