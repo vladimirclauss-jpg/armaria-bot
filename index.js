@@ -186,7 +186,7 @@ client.on(Events.InteractionCreate, async interaction => {
             await interaction.deferReply({ ephemeral: true });
 
             return interaction.editReply({
-                content: '📸 envie a foto do comprovante.',
+                content: '📸 envie a pintura do comprovante.',
                 ephemeral: true
             });
         }
